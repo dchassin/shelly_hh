@@ -2,7 +2,7 @@ import sys, os, requests, json
 
 devices = {}
 
-def Devices(file="devices.csv",reload=False):
+def Devices(file,reload=False):
     global devices
     if not devices or reload:
         with open(file,"r") as fh:
@@ -13,8 +13,8 @@ class Shelly:
 
     timeout = 2
 
-    def __init__(self,name):
-        self.ipaddr = Devices()[name]
+    def __init__(self,name,file):
+        self.ipaddr = Devices(file)[name]
         self.config = self._get()
         self.components = self.GetStatus("shelly")
 
