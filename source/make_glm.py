@@ -12,7 +12,18 @@ with open(f"{location}.glm","w") as fh:
 
 module shelly;
 
-class shelly {{
+#set run_realtime=1
+
+clock
+{{
+    timezone "${{SHELL gridlabd timezone local}}";
+    starttime "${{SHELL date +'%Y-%m-%d %H:%M:%S'}}";
+    stoptime "NEVER";
+}}
+
+class device 
+{{
+    enumeration {{OFFLINE=0, ONLINE=1}} status;
     enumeration {{OFF=0, ON=1}} switch;
     bool output;
     double power[W];
@@ -21,23 +32,30 @@ class shelly {{
     double energy[Wh];
     timestamp last_update;
     on_init "python:shelly.init";
+    on_precommit "python:shelly.read";
+    on_commit "python:shelly.write";
 }}
-""", file=fh)
+
+class hub 
+{{
+    on_init "python:shelly.load";
+    on_sync "python:shelly.sync";
+}}
+
+object hub 
+{{
+    name "{location}";""", file=fh)
 
     for name in shelly.Devices(devices):
 
         dev = shelly.Shelly(name,devices)
-        print(f"""
-object shelly {{
-    name "{name}";
-    output {dev.components['switch:0']['output']};
-    power {dev.components['switch:0']['apower']};
-    current {dev.components['switch:0']['current']};
-    energy {dev.components['switch:0']['aenergy']['total']};
-    last_update {dev.components['switch:0']['aenergy']['minute_ts']};
-}}
-""", file=fh)
+        print(f"""    object device {{
+        name "{name}";
+        status OFFLINE;
+    }};""", file=fh)
         print(f"{name}\n{'-'*len(name)}\n")
         for component,data in dev.components.items():
             print(f"  {component}: {data}")
         print("")
+
+    print(f"}}",file=fh)
