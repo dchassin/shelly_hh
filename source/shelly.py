@@ -40,4 +40,6 @@ class Shelly:
     def GetStatus(self,component,**data):
         return self._get(f"{component.title()}.GetStatus",**data)
 
-
+def init(obj,ts):
+    print(f"init({obj})",file=sys.stderr)
+    return 0

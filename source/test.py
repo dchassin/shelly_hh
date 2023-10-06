@@ -1,6 +1,6 @@
 import shelly
 
-devices = "u711.csv"
+devices = "b27.csv"
 
 for name in shelly.Devices(devices):
     print(f"{name}\n{'-'*len(name)}\n")
