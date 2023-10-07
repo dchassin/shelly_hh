@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+    echo "Syntax: shelly COMMAND [OPTIONS ...]"
+    exit 1
+fi
+
+case $1 in
+
+    scan)
+        shift 1
+        python3 $(dirname $0)/shelly_scan.py $*
+        ;;
+    *)
+        echo "ERROR [$(basename $0)]: '$1' is not valid"
+        exit 1
+        ;;
+esac

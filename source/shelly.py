@@ -1,3 +1,4 @@
+
 import sys, os
 import json
 import datetime
@@ -14,6 +15,7 @@ def verbose(msg):
         print(f"VERBOSE [shelly]: {msg}",file=sys.stderr)
 
 def Devices(file,reload=False):
+    """Load device list from file"""
     global device_addr
     global device_file
     if not device_file or file != device_file or reload:
@@ -23,10 +25,11 @@ def Devices(file,reload=False):
     return device_addr
 
 class Shelly:
-
+    """Shelly accessor"""
     timeout = 2
 
     def __init__(self,name,file=None):
+        """Shelly accessor constructor"""
         if not file:
             file = device_file
         self.ipaddr = Devices(file)[name]
@@ -89,9 +92,4 @@ def read(obj,ts):
 def write(obj,ts):
     verbose(f"write(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     return ts+1
-
-if __name__ == "__main__":
-    Devices("b27.csv")
-    print(device_addr)
-    for dev in device_addr:
-        print(Shelly(dev).GetStatus("switch",id=0))
+    
