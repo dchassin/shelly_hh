@@ -51,6 +51,11 @@ Example
 Scan the local network and generate a GLM file to access the devices found:
 
     gridlabd shelly scan -f=glm
+
+Scan the local network and generate a `shelly.json` configuration file:
+
+    gridlabd shelly scan -f=csv -o=shelly.csv
+
 """
 
 import sys, os
@@ -322,6 +327,6 @@ if __name__ == "__main__":
     except Exception as err:
         error(err,E_INVAL)
 
-    with open(OUTPUT,"w") as fh:
+    with open(OUTPUT,"w") if type(OUTPUT) is str else sys.stdout as fh:
         print(scan(format=FORMAT),file=fh)
 

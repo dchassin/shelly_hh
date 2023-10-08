@@ -1,18 +1,85 @@
-#!/bin/sh
+#!/bin/bash
+## Syntax: shelly COMMAND [OPTIONS ...]
+##
+## Access Shelly devices
+##
+## Options
+## -------
+##
+##   `config`: Scan network and update the Shelly configuration file.
+##
+##   `scan [OPTIONS]`: See `shelly scan help` for details.
+##
+##   `get NAME [VALUE [SUBVALUE [...]]]`: Get a device status variable.
+##
+##   `set NAME {True,False}`: Set the switch status and return the previous
+##                            status
+##
+## Example
+## -------
+##
+## Get all the status variables:
+##
+##   shelly get my_device_name
+##
+## Get the voltage:
+##
+##   shelly get my_device_name voltage
+##
+## Turn the device on
+##
+##   shelly set my_device_name True
+
 
 if [ $# -eq 0 ]; then
-    echo "Syntax: shelly COMMAND [OPTIONS ...]"
+    grep "^##" $0 | head -n 1 | cut -c4-
     exit 1
 fi
 
-case $1 in
+CONFIG=$(dirname $0)/shelly_config.csv
+if [ ! -f "${CONFIG}" ]; then
+    echo -n "Initialization $CONFIG..." >/dev/stderr
+    touch $CONFIG
+    $0 config
+    echo "ok">/dev/stderr
+fi
 
+case $1 in
+    help)
+        grep "^##" $0 | cut -c4-
+        ;;
+    config)
+        python3 "$(dirname $0)/shelly_scan.py" -f=csv -o="${CONFIG}"
+        ;;
     scan)
         shift 1
         python3 $(dirname $0)/shelly_scan.py $*
         ;;
+    get) # shelly get NAME VALUE
+        shift 1
+        ADDR=$(grep "^$1," $CONFIG | cut -f2 -d,)
+        shift 1
+        if [ $# -gt 0 ]; then
+            curl -s "http://$ADDR/rpc/switch.GetStatus?id=0" | gridlabd json-get $*
+        else
+            curl -s "http://$ADDR/rpc/switch.GetStatus?id=0"
+        fi
+        ;;
+    set)
+        shift 1
+        ADDR=$(grep "^$1," $CONFIG | cut -f2 -d,)
+        shift 1
+        if [ "$1" == "True" ]; then
+            curl -sL 'http://10.0.0.89/rpc/switch.Set?id=0&on=true' | gridlabd json-get was_on
+        elif [ "$1" == "False" ]; then
+            curl -sL 'http://10.0.0.89/rpc/switch.Set?id=0&on=false' | gridlabd json-get was_on
+        else
+            echo "ERROR [$(basename $0)]: '$1' is not valid" >/dev/stderr
+            exit 1
+        fi
+        ;;
     *)
-        echo "ERROR [$(basename $0)]: '$1' is not valid"
+        echo "ERROR [$(basename $0)]: '$1' is not valid" >/dev/stderr
         exit 1
         ;;
 esac
