@@ -4,9 +4,6 @@ import json
 import datetime
 import requests
 
-device_addr = {}
-device_file = None
-device_data = {}
 VERBOSE = True
 DEBUG = False
 
@@ -14,15 +11,22 @@ def verbose(msg):
     if VERBOSE:
         print(f"VERBOSE [shelly]: {msg}",file=sys.stderr)
 
-def Devices(file,reload=False):
+device_file = "shelly_config.csv" if os.path.exists("shelly_config.csv") else None
+device_addr = {}
+device_data = {}
+
+def Devices(file=device_file,reload=False):
     """Load device list from file"""
     global device_addr
     global device_file
-    if not device_file or file != device_file or reload:
-        with open(file,"r") as fh:
-            device_addr = dict([x.strip().split(",") for x in fh.readlines()])
-            device_file = file
+    if not device_data or file != device_file or reload:
+        if file:
+            with open(file,"r") as fh:
+                device_addr = dict([x.strip().split(",") for x in fh.readlines()])
+                device_file = file
     return device_addr
+
+Devices()
 
 class Shelly:
     """Shelly accessor"""
@@ -60,7 +64,8 @@ class Shelly:
 
 def load(obj,ts):
     verbose(f"load(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
-    Devices(obj+".csv")
+    if os.path.exists(obj+".csv"):
+        Devices(obj+".csv")
     verbose(f"Devices: {device_addr}")
     device_data[obj] = {}
     return 0
@@ -92,4 +97,4 @@ def read(obj,ts):
 def write(obj,ts):
     verbose(f"write(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     return ts+1
-    
+

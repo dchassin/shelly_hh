@@ -1,0 +1,14 @@
+//#python -m pip install -r ../requirements.txt
+
+#set run_realtime=1
+
+clock
+{
+    timezone "${SHELL gridlabd timezone local}";
+    starttime "${SHELL date +'%Y-%m-%d %H:%M:%S'}";
+    stoptime "NEVER";
+}
+
+//#exec ./shelly scan -f=glm -o=shelly_hub.glm
+//#include "shelly_hub.glm"
+#include (./shelly scan -f=glm)
