@@ -1,4 +1,5 @@
-
+"""Shelly device accessor library
+"""
 import sys, os
 import json
 import datetime
@@ -6,6 +7,7 @@ import requests
 
 VERBOSE = True
 DEBUG = False
+UPDATE_RATE = 1 # second
 
 def verbose(msg):
     if VERBOSE:
@@ -62,39 +64,51 @@ class Shelly:
     def GetStatus(self,component,**data):
         return self._get(f"{component.title()}.GetStatus",**data)
 
-def load(obj,ts):
-    verbose(f"load(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
+def hub_init(obj,ts):
+    """Hub initialization event handler
+
+    Loads device list hub:name.csv and initializes device data dictionary
+    """
+    verbose(f"hub_init(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     if os.path.exists(obj+".csv"):
         Devices(obj+".csv")
     verbose(f"Devices: {device_addr}")
     device_data[obj] = {}
     return 0
 
-def save(obj,response, **kwargs):
-    verbose(f"save(obj='{obj}',response={response},kwargs={kwargs})")
+def hub_sync(obj,ts):
+    """Hub synchronization event handler
+
+    Sets the update rate of the home hub, e.g., 1 second
+    """
+    verbose(f"hub_sync(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
+    return ts + UPDATE_RATE
+
+def device_sync(obj,response, **kwargs):
+    """Synchronize local data with remote device data"""
+    verbose(f"device_sync(obj='{obj}',response={response},kwargs={kwargs})")
     if response.status_code == 200:
         verbose(f"  code 200: {response.text}")
         device_data[obj] = json.loads(response.text)
-        verbose(f"device_data['{obj}'] = {device_data[obj]}")
+        verbose(f"  device_data['{obj}'] = {device_data[obj]}")
 
-def init(obj,ts):
-    verbose(f"init(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
+def device_init(obj,ts):
+    """Initialize local device data"""
+    verbose(f"device_init(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     return 0
 
-def sync(obj,ts):
-    verbose(f"sync(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
-    return ts+1
-
-def read(obj,ts):
-    verbose(f"read(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
+def device_read(obj,ts):
+    """Read remote device into local data"""
+    verbose(f"device_read(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     try:
-        requests.get(f"http://{device_addr[obj]}/rpc/Switch.GetStatus?id=0",timeout=1,hooks={"response":lambda x,**y:save(obj,x,**y)})
+        requests.get(f"http://{device_addr[obj]}/rpc/Switch.GetStatus?id=0",timeout=1,hooks={"response":lambda x,**y:device_sync(obj,x,**y)})
     except Exception as err:
         # print(f"Exception('{err}')",file=sys.stderr)
         gridlabd.warning(f"read(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}'): request timeout")
     return gridlabd.NEVER
 
-def write(obj,ts):
-    verbose(f"write(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
+def device_write(obj,ts):
+    """Write local data to remote device"""
+    verbose(f"device_write(obj='{obj}',ts='{datetime.datetime.fromtimestamp(ts)}')")
     return ts+1
 
