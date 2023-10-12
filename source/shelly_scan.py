@@ -72,7 +72,7 @@ PROGRESS    = False
 QUIET       = False
 DEBUG       = True
 TIMEOUT     = 2
-MAXQUEUE    = 1024
+MAXQUEUE    = 256
 NETWORKS    = []
 FORMAT      = 'csv'
 ROWDELIM    = '\n'
@@ -129,13 +129,14 @@ async def task(name, work_queue):
                 async with session.get(url,timeout=TIMEOUT) as response: 
                 #,hooks={"response":lambda *x,**y:found(name,*x,**y)}) as response
                     found(name,url,await response.text())
-            except TimeoutError:
-                pass
-            except aiohttp.ClientConnectionError:
-                pass
             except Exception as err:
-                e_type,e_value,e_trace = sys.exc_info()
-                print(f"EXCEPTION [{e_type.__name__}]: {e_value}",file=sys.stderr)
+                pass
+            #     e_type,e_value,e_trace = sys.exc_info()
+            #     print(f"EXCEPTION [{e_type.__name__}]: {url} failed ({e_value})",file=sys.stderr)
+            # except TimeoutError:
+            #     pass
+            # except aiohttp.ClientConnectionError:
+            #     pass
 
 def found(name,url,response,**kwargs):
     try:

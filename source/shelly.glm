@@ -10,6 +10,7 @@ clock
     stoptime "NEVER";
 }
 
-//#exec ./shelly scan -f=glm -o=shelly_hub.glm
-//#include "shelly_hub.glm"
-#include (./shelly scan -f=glm)
+#exec ./shelly scan -n=198.129.110.10-198.129.120.100 -f=glm -o=shelly_hub.glm
+
+#include "shelly_hub.glm"
+//#include (./shelly scan -f=glm)
