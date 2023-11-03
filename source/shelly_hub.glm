@@ -1,3 +1,4 @@
+
 module shelly;
 class hub
 {
@@ -20,27 +21,10 @@ class device
     on_commit "python:shelly.device_write";
 }
 object hub {
+    name "test_hub";
     object device
     {
-        name "house_b_evcharger_1";
-        ipaddr "198.129.110.63";
-    };
-}
-    object device
-    {
-        name "house_a_lights_1";
-        ipaddr "198.129.111.64";
-    };
-}
-    object device
-    {
-        name "house_b_lights_1";
-        ipaddr "198.129.111.74";
-    };
-}
-    object device
-    {
-        name "house_a_ac_1";
-        ipaddr "198.129.110.95";
+            name "indigo_711_fountain_1";
+            ipaddr "10.0.0.89";
     };
 }
