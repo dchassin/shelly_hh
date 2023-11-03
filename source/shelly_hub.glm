@@ -1,5 +1,7 @@
 
 module shelly;
+#set run_realtime=1
+
 class hub
 {
     on_init "python:shelly.hub_init";
